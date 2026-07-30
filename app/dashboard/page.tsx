@@ -45,22 +45,20 @@ export default function DashboardPage() {
       `}</style>
 
       {/* Header */}
-      <header className="max-w-7xl w-full mx-auto flex items-center justify-between border-b border-[#E3DCC6] pb-3">
-        <div className="flex items-center gap-3">
+      <header className="max-w-7xl w-full mx-auto flex items-center justify-between border-b border-[#E3DCC6] pb-3 gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
           <Link
             href="/"
-            className="bg-white p-2 rounded-xl border border-[#E3DCC6] hover:border-[#B68D40]/40 transition shadow-sm"
+            className="bg-white p-2 rounded-xl border border-[#E3DCC6] hover:border-[#B68D40]/40 transition shadow-sm shrink-0"
           >
             <ArrowLeft className="w-4 h-4 text-[#54503F]" />
           </Link>
-          <div className="flex items-center gap-2">
-            <Leaf className="w-5 h-5 text-[#2F6B4A]" />
-            <h1 className="font-display text-lg font-semibold tracking-tight text-[#163C2C]">
-              TeaPulse <span className="text-[#B68D40]">3D Land Studio</span>
-            </h1>
-          </div>
+          <Leaf className="w-5 h-5 text-[#2F6B4A] shrink-0" />
+          <h1 className="font-display text-base sm:text-lg font-semibold tracking-tight text-[#163C2C] truncate">
+            TeaPulse <span className="text-[#B68D40]">3D Land Studio</span>
+          </h1>
         </div>
-        <span className="bg-[#2F6B4A]/10 text-[#2F6B4A] px-3 py-1 rounded-full text-xs font-semibold border border-[#2F6B4A]/20 flex items-center gap-1.5">
+        <span className="hidden md:flex bg-[#2F6B4A]/10 text-[#2F6B4A] px-3 py-1 rounded-full text-xs font-semibold border border-[#2F6B4A]/20 items-center gap-1.5 shrink-0">
           <Layers className="w-3.5 h-3.5" /> 3D Spatial Division v1.0
         </span>
       </header>
