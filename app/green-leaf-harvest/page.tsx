@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Scale,
   ArrowLeft,
@@ -24,16 +25,17 @@ import {
   Legend,
 } from 'recharts';
 import LandSidebar from '@/components/LandSidebar';
+import { authFetch } from '@/lib/auth';
+
+const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
 
 export default function GreenLeafHarvestPage() {
   const [land, setLand] = useState<any>(null);
-  const [harvestLogs, setHarvestLogs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   // Form States for Grade A & Grade B (Removed quality slider)
   const [gradeAKg, setGradeAKg] = useState<string>('');
   const [gradeBKg, setGradeBKg] = useState<string>('');
-  const [isSubmitting, setIsSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // Filter Modes: 'daily' | 'weekly' | 'monthly'
@@ -46,30 +48,33 @@ export default function GreenLeafHarvestPage() {
     day: 'numeric'
   }), []);
 
+  // land comes from localStorage, not the server, so this stays a plain
+  // useEffect — React Query is for server data, not reading localStorage.
   useEffect(() => {
     const sessionLand = localStorage.getItem('userLand');
     if (sessionLand) {
-      const parsed = JSON.parse(sessionLand);
-      setLand(parsed);
-      fetchHarvestLogs(parsed.id);
+      setLand(JSON.parse(sessionLand));
     }
   }, []);
 
-  const fetchHarvestLogs = async (landId: string) => {
-    setLoading(true);
-    try {
-      const fastApiUrl = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
-      const res = await fetch(`${fastApiUrl}/api/v1/tea-leaves/get-harvest-logs/${landId}`);
+  // 👇 useQuery replaces: fetchHarvestLogs() + harvestLogs state + loading state
+  // + the manual useEffect call. It refetches automatically whenever
+  // `land.id` changes, caches the result, and gives us isLoading for free.
+  const {
+    data: harvestLogs = [],
+    isLoading: loading,
+  } = useQuery({
+    queryKey: ['harvest-logs', land?.id],
+    queryFn: async () => {
+      const res = await authFetch(`${FASTAPI_URL}/api/v1/tea-leaves/get-harvest-logs/${land.id}`);
       const result = await res.json();
-      if (res.ok && result.status === 'success') {
-        setHarvestLogs(result.data || []);
+      if (!res.ok || result.status !== 'success') {
+        throw new Error(result.detail || 'Failed to load harvest logs');
       }
-    } catch (err) {
-      console.error('Fetch harvest logs error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return result.data || [];
+    },
+    enabled: !!land?.id, // don't run the query until we actually have a land id
+  });
 
   // Live Total Calculation for UI Preview
   const liveTotalKg = useMemo(() => {
@@ -78,16 +83,13 @@ export default function GreenLeafHarvestPage() {
     return (a + b).toFixed(1);
   }, [gradeAKg, gradeBKg]);
 
-  const handleSaveHarvest = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!land?.id) return;
-
-    setIsSaving(true);
-    setSuccessMsg(null);
-
-    try {
-      const fastApiUrl = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
-      const response = await fetch(`${fastApiUrl}/api/v1/tea-leaves/record-harvest`, {
+  // 👇 useMutation replaces: handleSaveHarvest's manual isSubmitting state +
+  // try/catch/finally. On success it invalidates the harvest-logs query,
+  // which automatically triggers the useQuery above to refetch — no more
+  // manually calling fetchHarvestLogs(land.id) after saving.
+  const { mutate: saveHarvest, isPending: isSubmitting } = useMutation({
+    mutationFn: async () => {
+      const res = await authFetch(`${FASTAPI_URL}/api/v1/tea-leaves/record-harvest`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -97,19 +99,28 @@ export default function GreenLeafHarvestPage() {
           quality_grade_pct: 75.0, // Default fixed quality value since slider is removed
         }),
       });
-
-      const resData = await response.json();
-      if (response.ok && resData.status === 'success') {
-        setSuccessMsg(resData.message);
-        setGradeAKg('');
-        setGradeBKg('');
-        fetchHarvestLogs(land.id);
+      const result = await res.json();
+      if (!res.ok || result.status !== 'success') {
+        throw new Error(result.detail || 'Failed to save harvest');
       }
-    } catch (err) {
+      return result;
+    },
+    onSuccess: (result) => {
+      setSuccessMsg(result.message);
+      setGradeAKg('');
+      setGradeBKg('');
+      queryClient.invalidateQueries({ queryKey: ['harvest-logs', land?.id] });
+    },
+    onError: (err) => {
       console.error('Save harvest error:', err);
-    } finally {
-      setIsSaving(false);
-    }
+    },
+  });
+
+  const handleSaveHarvest = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!land?.id) return;
+    setSuccessMsg(null);
+    saveHarvest();
   };
 
   // Format Chart Data based on Daily, Weekly, Monthly views
@@ -117,7 +128,7 @@ export default function GreenLeafHarvestPage() {
     if (harvestLogs.length === 0) return [];
 
     if (chartMode === 'daily') {
-      return harvestLogs.map((log) => ({
+      return harvestLogs.map((log: any) => ({
         date: log.harvest_date.slice(5),
         gradeA: parseFloat(log.grade_a_weight_kg || 0),
         gradeB: parseFloat(log.grade_b_weight_kg || 0),
@@ -127,7 +138,7 @@ export default function GreenLeafHarvestPage() {
 
     const grouped: { [key: string]: { gradeA: number; gradeB: number; total: number } } = {};
 
-    harvestLogs.forEach((log) => {
+    harvestLogs.forEach((log: any) => {
       const dateObj = new Date(log.harvest_date);
       let key = log.harvest_date.slice(5);
 
@@ -335,13 +346,14 @@ export default function GreenLeafHarvestPage() {
                 <BarChart data={formattedChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#EDEADC" />
                   <XAxis dataKey="date" stroke="#8A836E" fontSize={11} />
-<YAxis 
-  stroke="#8A836E" 
-  fontSize={11} 
-  unit="kg" 
-  domain={[0, 'auto']} 
-  allowDecimals={false}
-/>                  <Tooltip contentStyle={{ backgroundColor: '#FFFFFF', borderColor: '#E3DCC6', borderRadius: '12px', fontSize: '12px' }} />
+                  <YAxis
+                    stroke="#8A836E"
+                    fontSize={11}
+                    unit="kg"
+                    domain={[0, 'auto']}
+                    allowDecimals={false}
+                  />
+                  <Tooltip contentStyle={{ backgroundColor: '#FFFFFF', borderColor: '#E3DCC6', borderRadius: '12px', fontSize: '12px' }} />
                   <Legend />
                   {/* Grade B Maroon Bar on the left / side-by-side */}
                   <Bar dataKey="gradeB" name="Grade B (Coarse Leaf / රුචිය)" fill="#800020" radius={[6, 6, 0, 0]} barSize={25} />

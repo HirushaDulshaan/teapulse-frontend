@@ -1,50 +1,81 @@
 // app/login/page.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Image from 'next/image';
-import { Mail, Lock, ArrowRight, Leaf } from 'lucide-react';
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { Mail, Lock, ArrowRight, Leaf } from "lucide-react";
+import { saveAuthToken } from "@/lib/auth";
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Safety check: Don't proceed if fields are empty
+    if (!email || !password) {
+      setError("Please enter both email and password.");
+      return;
+    }
+
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const fastApiUrl = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+      const fastApiUrl =
+        process.env.NEXT_PUBLIC_FASTAPI_URL || "http://localhost:8000";
       const response = await fetch(`${fastApiUrl}/api/v1/users/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
       const result = await response.json();
 
-      if (response.ok && result.status === 'success') {
-        localStorage.setItem('userSession', JSON.stringify(result.user));
-        localStorage.setItem('userLand', JSON.stringify(result.land));
-        router.push('/my-land');
+      // STRICT CHECK: Only proceed if response is truly ok and status is success with a token
+      if (response.ok && result.status === "success" && result.access_token) {
+        saveAuthToken(result.access_token);
+
+        // Also set a plain cookie so middleware can read it immediately
+        document.cookie = `teapulse_token=${result.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+
+        if (result.user) {
+          localStorage.setItem("userSession", JSON.stringify(result.user));
+        }
+        if (result.land) {
+          localStorage.setItem("userLand", JSON.stringify(result.land));
+        }
+
+        const redirectTo = searchParams.get("redirect") || "/my-land";
+        router.push(redirectTo);
       } else {
-        const detailMsg = typeof result.detail === 'string'
-          ? result.detail
-          : Array.isArray(result.detail)
-            ? result.detail[0]?.msg || 'Validation Error'
-            : 'Login failed. Please check credentials.';
+        const detailMsg =
+          typeof result.detail === "string"
+            ? result.detail
+            : Array.isArray(result.detail)
+              ? result.detail[0]?.msg || "Validation Error"
+              : "Invalid email or password. Please try again.";
 
         setError(detailMsg);
       }
     } catch (err) {
-      console.error('Login error:', err);
-      setError('Server error. Make sure Python Backend is running.');
+      console.error("Login error:", err);
+      setError("Server error. Make sure Python Backend is running.");
     } finally {
       setLoading(false);
     }
@@ -53,23 +84,23 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-[#FBFAF6] flex">
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+        @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap");
         .font-display {
-          font-family: 'Fraunces', Georgia, serif;
+          font-family: "Fraunces", Georgia, serif;
           font-optical-sizing: auto;
         }
       `}</style>
 
-      {/* Left: photo panel — hidden on small screens, blurred tea-leaf backdrop */}
-      <div className="hidden lg:block relative w-1/2">
+      {/* Left: photo panel — background image restored with ~50% blur */}
+      <div className="hidden lg:block relative w-1/2 overflow-hidden">
         <Image
           src="/images/tea-leaves-bg.jpg"
           alt="Fresh Ceylon tea leaves"
           fill
           priority
-          className="object-cover scale-105 blur-[1.5px]"
+          sizes="50vw"
+          className="object-cover object-center scale-105 blur-[6px]"
         />
-        {/* light green-black wash — just enough for text legibility, leaves stay visible */}
         <div className="absolute inset-0 bg-[#0E2A1D]/30" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B2015]/85 via-transparent to-[#0B2015]/55" />
 
@@ -83,13 +114,13 @@ export default function LoginPage() {
             </span>
           </div>
 
-          <div className="max-w-sm">
+          <div className="max-w-sm space-y-3">
             <h2 className="font-display text-3xl font-semibold text-white leading-snug">
               Every leaf, measured to perfection.
             </h2>
-            <p className="text-[#E8E4D6]/80 text-sm mt-3 leading-relaxed">
-              Sign in to see your estate's blocks, soil data, and precision fertilizer
-              recommendations, all in one place.
+            <p className="text-[#E8E4D6]/80 text-sm leading-relaxed">
+              Sign in to see your estate's blocks, soil data, and precision
+              fertilizer recommendations, all in one place.
             </p>
           </div>
         </div>
@@ -98,7 +129,6 @@ export default function LoginPage() {
       {/* Right: form panel */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-10">
         <div className="max-w-md w-full space-y-6">
-          {/* Mobile-only logo, since the photo panel is hidden below lg */}
           <div className="lg:hidden flex items-center justify-center gap-3 mb-2">
             <div className="bg-[#2F6B4A]/10 p-2 rounded-xl border border-[#2F6B4A]/20">
               <Leaf className="w-5 h-5 text-[#2F6B4A]" />
@@ -109,8 +139,12 @@ export default function LoginPage() {
           </div>
 
           <div className="text-center space-y-2">
-            <h1 className="font-display text-3xl font-semibold text-[#163C2C]">Welcome back</h1>
-            <p className="text-sm text-[#8A836E]">Enter your credentials to access TeaPulse</p>
+            <h1 className="font-display text-3xl font-semibold text-[#163C2C]">
+              Welcome back
+            </h1>
+            <p className="text-sm text-[#8A836E]">
+              Enter your credentials to access TeaPulse
+            </p>
           </div>
 
           {error && (
@@ -121,7 +155,9 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-[#54503F] mb-1.5">Email Address</label>
+              <label className="block text-xs font-semibold text-[#54503F] mb-1.5">
+                Email Address
+              </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-[#8A836E] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -136,7 +172,9 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#54503F] mb-1.5">Password</label>
+              <label className="block text-xs font-semibold text-[#54503F] mb-1.5">
+                Password
+              </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-[#8A836E] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -153,23 +191,31 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#163C2C] hover:bg-[#1F4D36] disabled:opacity-60 text-[#F4EEDD] font-semibold py-3.5 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-lg shadow-[#163C2C]/15"
+              className="w-full bg-[#163C2C] hover:bg-[#1F4D36] disabled:opacity-60 text-[#F4EEDD] font-semibold py-3.5 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-lg shadow-[#163C2C]/15 cursor-pointer"
             >
-              {loading ? 'Logging in...' : 'Access My Land'} <ArrowRight className="w-4 h-4" />
+              {loading ? "Logging in..." : "Access My Land"}{" "}
+              <ArrowRight className="w-4 h-4" />
             </button>
 
             <p className="text-xs text-[#54503F] text-center">
-              Don't have an account?{' '}
-              <Link href="/dashboard" className="text-[#2F6B4A] font-semibold hover:underline">
+              Don't have an account?{" "}
+              <Link
+                href="/dashboard"
+                className="text-[#2F6B4A] font-semibold hover:underline"
+              >
                 Create one here
               </Link>
               .
             </p>
 
             <p className="text-[10px] text-[#8A836E] text-center pt-2">
-              By logging in, you agree to our{' '}
-              <span className="text-[#B68D40] font-medium">Terms of Service</span> and{' '}
-              <span className="text-[#B68D40] font-medium">Privacy Policy</span>.
+              By logging in, you agree to our{" "}
+              <span className="text-[#B68D40] font-medium">
+                Terms of Service
+              </span>{" "}
+              and{" "}
+              <span className="text-[#B68D40] font-medium">Privacy Policy</span>
+              .
             </p>
           </form>
         </div>

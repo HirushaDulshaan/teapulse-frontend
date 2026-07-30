@@ -29,9 +29,9 @@ export default function LandSidebar() {
     { name: 'My Registered Estate', href: '/my-land', icon: MapPin },
     { name: 'Soil & Yield Analytics', href: '/yield-analytics', icon: BarChart3 },
     { name: 'Field Work Schedule', href: '/harvest-tracker', icon: Sprout },
-    { name: 'Green Leaf Yield Log', href: '/green-leaf-harvest', icon: Scale }, // 👈 NEW DEDICATED PAGE
-    { name: 'Daily Telemetry Audit', href: '/telemetry', icon: Database }, // 👈 LINKED TO YOUR TELEMETRY PAGE
-    { name: 'Weather Forecast', href: '/weather', icon: CloudSun }, // 👈 UPDATED HERE
+    { name: 'Green Leaf Yield Log', href: '/green-leaf-harvest', icon: Scale }, 
+    { name: 'Daily Telemetry Audit', href: '/telemetry', icon: Database }, 
+    { name: 'Weather Forecast', href: '/weather', icon: CloudSun }, 
     { name: 'Estate Settings', href: '#', icon: Settings },
   ];
 

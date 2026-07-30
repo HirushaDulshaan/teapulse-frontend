@@ -5,6 +5,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Leaf, User, Phone, MapPin, CreditCard, ArrowRight, ShieldCheck, Mail, Lock } from 'lucide-react';
+import { saveAuthToken } from '@/lib/auth';
 
 function ProfileFormContent() {
   const router = useRouter();
@@ -47,7 +48,7 @@ function ProfileFormContent() {
 
     try {
       const fastApiUrl = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
-      
+
       const response = await fetch(`${fastApiUrl}/api/v1/users/register-land`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -69,12 +70,25 @@ function ProfileFormContent() {
       const result = await response.json();
 
       if (response.ok && result.status === 'success') {
+        // 👇 register-land now auto-logs-in and returns access_token too —
+        // save it so the user lands on /my-land already authenticated
+        // instead of being bounced to /login by middleware.ts.
+        saveAuthToken(result.access_token);
+
         router.push('/my-land');
       } else {
         setErrorMessage(result.detail || 'Failed to save data to Supabase database.');
       }
     } catch (err: any) {
       console.error('API Request Error:', err);
+      // ⚠️ NOTE (not changing this now since you didn't ask, just flagging):
+      // this catch block currently redirects to /my-land even when the
+      // request totally failed (e.g. backend down / network error) — same
+      // silent-fallback pattern we saw in the AI recommendation endpoint.
+      // Since /my-land is now a protected page and no token was ever
+      // saved on this path, middleware.ts will just bounce them to
+      // /login anyway, but the underlying registration attempt is lost
+      // silently rather than showing an error. Worth revisiting later.
       router.push('/my-land');
     } finally {
       setLoading(false);

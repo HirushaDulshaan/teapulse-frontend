@@ -201,7 +201,7 @@ export default function YieldAnalyticsPage() {
 
       return {
         date: log.log_date.slice(5),
-        actual: val,
+        actual: val as number | null,
         predicted: null as number | null,
         ideal: activeMetric === 'ph' ? 4.8 : activeMetric === 'nitrogen' ? 120 : activeMetric === 'moisture' ? 75 : 15,
       };
@@ -220,7 +220,7 @@ export default function YieldAnalyticsPage() {
         activeMetric === 'nitrogen' ? 15 :
         activeMetric === 'moisture' ? 12 : 0;
 
-      const projectedVal = parseFloat((lastActual + boost).toFixed(1));
+      const projectedVal = parseFloat((lastActual! + boost).toFixed(1));
 
       resultData.push({
         date: 'Predict (10d)',
