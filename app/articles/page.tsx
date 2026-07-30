@@ -4,7 +4,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, BookOpen, Clock, Calendar, ChevronRight, Sparkles, X, Leaf } from 'lucide-react';
-import LandSidebar from '@/components/LandSidebar';
+
+
 
 export default function ArticlesPage() {
   const router = useRouter();
@@ -128,28 +129,29 @@ export default function ArticlesPage() {
         }
       `}</style>
 
-      <LandSidebar />
+     
 
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[#E3DCC6] pb-4 pr-28">
-        <div className="flex items-center gap-3">
+      <div className="flex items-start sm:items-center justify-between border-b border-[#E3DCC6] pb-4 gap-3">
+        <div className="flex items-start sm:items-center gap-3">
           <button 
             onClick={() => router.back()} 
-            className="bg-white p-2.5 rounded-xl border border-[#E3DCC6] hover:border-[#B68D40]/40 transition text-[#54503F] shadow-sm flex items-center justify-center cursor-pointer"
+            className="bg-white p-2.5 rounded-xl border border-[#E3DCC6] hover:border-[#B68D40]/40 transition text-[#54503F] shadow-sm flex items-center justify-center cursor-pointer shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="font-display text-xl font-semibold text-[#163C2C] flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-[#2F6B4A]" /> Tea Cultivation & Smart Agri Knowledge Base
+            <h1 className="font-display text-lg sm:text-xl font-semibold text-[#163C2C] flex flex-wrap items-center gap-2 leading-snug">
+              <BookOpen className="w-5 h-5 text-[#2F6B4A] shrink-0" />
+              <span>Tea Cultivation & Smart Agri Knowledge Base</span>
             </h1>
-            <p className="text-xs text-[#8A836E]">
+            <p className="text-xs text-[#8A836E] mt-1">
               Expert insights, agronomy guides, and modern estate management articles
             </p>
           </div>
         </div>
 
-        <span className="hidden md:flex bg-[#2F6B4A]/10 text-[#2F6B4A] px-3.5 py-1.5 rounded-full text-xs font-semibold border border-[#2F6B4A]/20 items-center gap-1.5">
+        <span className="hidden md:flex bg-[#2F6B4A]/10 text-[#2F6B4A] px-3.5 py-1.5 rounded-full text-xs font-semibold border border-[#2F6B4A]/20 items-center gap-1.5 shrink-0">
           <Sparkles className="w-4 h-4" /> Updated Daily
         </span>
       </div>
