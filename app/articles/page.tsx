@@ -2,29 +2,46 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, BookOpen, Clock, Calendar, ChevronRight, Sparkles, X, Leaf } from 'lucide-react';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { ArrowLeft, BookOpen, Clock, Calendar, ChevronRight, Sparkles, X, Leaf, Loader2 } from 'lucide-react';
 
-// 1. FastAPI Backend එකෙන් ආටිකල්ස් ෆෙච් කරගන්න function එක
-const fetchArticles = async () => {
+const PAGE_SIZE = 5;
+
+// Paginated fetch function
+const fetchArticles = async ({ pageParam = 0 }) => {
     const backendUrl = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
-    const res = await fetch(`${backendUrl}/articles/`);
+    const res = await fetch(`${backendUrl}/articles/?limit=${PAGE_SIZE}&offset=${pageParam}`);
     const result = await res.json();
     if (!result.success) {
         throw new Error('Failed to fetch articles');
     }
-    return result.data;
+    return result; // { success, data, total, limit, offset }
 };
 
 export default function ArticlesPage() {
     const router = useRouter();
     const [selectedArticle, setSelectedArticle] = useState<any>(null);
 
-    // 2. TanStack Query useQuery හරහා ඩේටා ලබාගැනීම
-    const { data: articles = [], isLoading, isError } = useQuery({
+    // Infinite/paginated query — loads 5 at a time
+    const {
+        data,
+        isLoading,
+        isError,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+    } = useInfiniteQuery({
         queryKey: ['articles'],
         queryFn: fetchArticles,
+        initialPageParam: 0,
+        getNextPageParam: (lastPage) => {
+            const loadedSoFar = lastPage.offset + lastPage.data.length;
+            return loadedSoFar < lastPage.total ? loadedSoFar : undefined;
+        },
     });
+
+    // Flatten all loaded pages into a single articles array
+    const articles = data?.pages.flatMap((page) => page.data) || [];
 
     if (isLoading) {
         return (
@@ -45,12 +62,12 @@ export default function ArticlesPage() {
     return (
         <div className="min-h-screen w-full bg-[#FBFAF6] text-[#1A1A17] font-sans p-4 md:p-8 space-y-6 relative">
             <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
-        .font-display {
-          font-family: 'Fraunces', Georgia, serif;
-          font-optical-sizing: auto;
-        }
-      `}</style>
+                @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+                .font-display {
+                    font-family: 'Fraunces', Georgia, serif;
+                    font-optical-sizing: auto;
+                }
+            `}</style>
 
             {/* Header */}
             <div className="flex items-start sm:items-center justify-between border-b border-[#E3DCC6] pb-4 gap-3">
@@ -124,6 +141,25 @@ export default function ArticlesPage() {
                     </div>
                 ))}
             </div>
+
+            {/* Load More Button */}
+            {hasNextPage && (
+                <div className="flex justify-center pt-2">
+                    <button
+                        onClick={() => fetchNextPage()}
+                        disabled={isFetchingNextPage}
+                        className="bg-white border border-[#E3DCC6] hover:border-[#2F6B4A]/40 text-[#163C2C] font-bold px-6 py-3 rounded-xl text-xs flex items-center gap-2 transition shadow-sm cursor-pointer disabled:opacity-50"
+                    >
+                        {isFetchingNextPage ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" /> Loading more...
+                            </>
+                        ) : (
+                            'Load More Articles'
+                        )}
+                    </button>
+                </div>
+            )}
 
             {/* FULL ARTICLE MODAL POPUP */}
             {selectedArticle && (
