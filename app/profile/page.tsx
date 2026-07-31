@@ -243,11 +243,11 @@ function ProfileFormContent() {
           </div>
 
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-500/20 mt-4 disabled:opacity-50"
+              type="submit"
+              disabled={loading}
+              className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-500/20 mt-4 disabled:opacity-50"
           >
-            {loading ? 'Registering with Python Backend...' : 'Complete Profile & View My Land'} <ArrowRight className="w-4 h-4" />
+            {loading ? 'Setting Up Your Profile...' : 'Complete Profile & View My Land'} <ArrowRight className="w-4 h-4" />
           </button>
         </form>
       </div>
