@@ -35,7 +35,7 @@ export default function DashboardPage() {
   };
 
   return (
-      <div className="min-h-screen lg:h-screen w-full bg-[#FBFAF6] text-[#1A1A17] font-sans p-4 md:px-8 md:py-5 lg:overflow-hidden flex flex-col lg:justify-between">
+      <div className="min-h-screen w-full bg-[#FBFAF6] text-[#1A1A17] font-sans p-4 md:px-8 md:py-5 flex flex-col">
         <style jsx global>{`
           @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
           .font-display {
@@ -63,18 +63,18 @@ export default function DashboardPage() {
         </span>
         </header>
 
-        {/* Main Grid — full-height lock only applies from lg breakpoint up.
-          Below lg, the page grows naturally and the browser scrolls, so
-          nothing gets clipped once the 3D view appears on mobile. */}
-        <main className="max-w-7xl w-full mx-auto flex-1 py-4 lg:overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:items-center h-full">
+        {/* Main Grid — no forced full-height lock, so content always gets the
+          space it needs and the page scrolls on shorter screens instead of
+          clipping the action bar. */}
+        <main className="max-w-7xl w-full mx-auto flex-1 py-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:items-start">
             {/* Left Side: Map Container */}
-            <div className="lg:col-span-5 bg-white p-4 rounded-2xl border border-[#E3DCC6] shadow-sm lg:h-full flex flex-col justify-center">
+            <div className="lg:col-span-5 bg-white p-4 rounded-2xl border border-[#E3DCC6] shadow-sm flex flex-col">
               <EstateMap onBoundarySave={handleBoundarySave} />
             </div>
 
             {/* Right Side: 3D Land Model */}
-            <div className="lg:col-span-7 lg:h-full flex flex-col justify-center">
+            <div className="lg:col-span-7 flex flex-col">
               <Estate3DView isSaved={isLandSaved} points={savedPoints} />
             </div>
           </div>
