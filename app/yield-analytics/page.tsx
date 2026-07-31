@@ -4,6 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { authFetch } from '@/lib/auth';
 import {
   BarChart3,
   ArrowLeft,
@@ -65,7 +66,7 @@ export default function YieldAnalyticsPage() {
   const fetchTelemetryLogs = async (landId: string) => {
     try {
       const fastApiUrl = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
-      const res = await fetch(`${fastApiUrl}/api/v1/telemetry/get-logs/${landId}`);
+      const res = await authFetch(`${fastApiUrl}/api/v1/telemetry/get-logs/${landId}`);
       const result = await res.json();
       if (res.ok && result.status === 'success') {
         setLogsList(result.data || []);
@@ -78,7 +79,7 @@ export default function YieldAnalyticsPage() {
   const fetchActivePredictions = async (landId: string) => {
     try {
       const fastApiUrl = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
-      const res = await fetch(`${fastApiUrl}/api/v1/ai/get-active-predictions/${landId}`);
+      const res = await authFetch(`${fastApiUrl}/api/v1/ai/get-active-predictions/${landId}`);
       const result = await res.json();
       if (res.ok && result.status === 'success') {
         setPredictionsList(result.data || []);
