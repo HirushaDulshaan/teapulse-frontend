@@ -143,27 +143,27 @@ export default function TelemetryManagementPage() {
       
       <LandSidebar />
 
-      {/* Header - Fixed overlapping with proper right margin for floating menu */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#E3DCC6] pb-4 gap-4 pr-0 md:pr-36">
-        <div className="flex items-center gap-3">
-          <Link href="/my-land" className="bg-white p-2.5 rounded-xl border border-[#E3DCC6] hover:border-[#B68D40]/40 transition text-[#54503F] shadow-sm">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#E3DCC6] pb-4 gap-4 pr-14 md:pr-36">
+        <div className="flex items-start gap-3">
+          <Link href="/my-land" className="bg-white p-2.5 rounded-xl border border-[#E3DCC6] hover:border-[#B68D40]/40 transition text-[#54503F] shadow-sm shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <div>
-            <h1 className="font-display text-xl font-semibold text-[#163C2C] flex items-center gap-2">
-              <Database className="w-5 h-5 text-[#2F6B4A]" /> Daily Telemetry Audit Engine
+          <div className="min-w-0">
+            <h1 className="font-display text-base md:text-xl font-semibold text-[#163C2C] leading-snug flex items-center gap-2">
+              <Database className="w-5 h-5 text-[#2F6B4A] shrink-0" /> Daily Telemetry
             </h1>
-            <p className="text-xs text-[#8A836E]">
+            <p className="text-xs text-[#8A836E] mt-1">
               Estate: <strong className="text-[#163C2C]">{land?.land_name || 'My Estate'}</strong> ({totalMicroBlocks} Blocks)
             </p>
           </div>
         </div>
 
         {/* Dynamic Lock Indicator */}
-        <div className={`self-start md:self-auto px-4 py-2 rounded-2xl border text-xs font-semibold flex items-center gap-2 ${
-          isEditable 
-            ? 'bg-[#2F6B4A]/10 text-[#2F6B4A] border-[#2F6B4A]/20' 
-            : 'bg-[#B68D40]/10 text-[#B68D40] border-[#B68D40]/20'
+        <div className={`self-start md:self-auto px-4 py-2 rounded-2xl border text-xs font-semibold flex items-center gap-2 shrink-0 ${
+            isEditable
+                ? 'bg-[#2F6B4A]/10 text-[#2F6B4A] border-[#2F6B4A]/20'
+                : 'bg-[#B68D40]/10 text-[#B68D40] border-[#B68D40]/20'
         }`}>
           {isEditable ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
           {isEditable ? 'Editing Active (Today)' : 'Historical Record (Locked)'}

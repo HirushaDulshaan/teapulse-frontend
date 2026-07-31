@@ -253,25 +253,25 @@ export default function YieldAnalyticsPage() {
       <LandSidebar />
 
       {/* Header */}
-      <header className="flex items-center justify-between border-b border-[#E3DCC6] pb-4 pr-28">
-        <div className="flex items-center gap-3">
-          <Link href="/my-land" className="bg-white p-2.5 rounded-xl border border-[#E3DCC6] hover:border-[#B68D40]/40 transition shadow-sm">
+      <header className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#E3DCC6] pb-4 gap-4 pr-16 md:pr-28">
+        <div className="flex items-start gap-3">
+          <Link href="/my-land" className="bg-white p-2.5 rounded-xl border border-[#E3DCC6] hover:border-[#B68D40]/40 transition shadow-sm shrink-0">
             <ArrowLeft className="w-5 h-5 text-[#54503F]" />
           </Link>
-          <div>
-            <h1 className="font-display text-xl font-semibold tracking-tight text-[#163C2C] flex items-center gap-2">
-              <TestTube className="w-6 h-6 text-[#7C5AA6]" />
-              Soil & Telemetry <span className="text-[#7C5AA6]">AI Analysis Studio</span>
+          <div className="min-w-0">
+            <h1 className="font-display text-lg md:text-xl font-semibold tracking-tight text-[#163C2C] leading-snug flex items-center gap-2">
+              <TestTube className="w-5 h-5 md:w-6 md:h-6 text-[#7C5AA6] shrink-0" />
+              Soil & Telemetry
             </h1>
-            <p className="text-xs text-[#8A836E]">
+            <p className="text-xs text-[#8A836E] mt-1">
               Estate: <strong className="text-[#163C2C]">{land?.land_name || 'My Estate'}</strong> ({totalAcres} Acres)
             </p>
           </div>
         </div>
 
-        <span className="hidden md:flex bg-[#7C5AA6]/10 text-[#7C5AA6] px-3.5 py-1.5 rounded-full text-xs font-semibold border border-[#7C5AA6]/20 items-center gap-1.5">
-          <Sparkles className="w-4 h-4" /> Gemini AI Soil Agronomist Connected
-        </span>
+        <span className="hidden md:flex bg-[#7C5AA6]/10 text-[#7C5AA6] px-3.5 py-1.5 rounded-full text-xs font-semibold border border-[#7C5AA6]/20 items-center gap-1.5 shrink-0">
+    <Sparkles className="w-4 h-4" /> Gemini AI Soil Agronomist Connected
+  </span>
       </header>
 
       {/* Active Treatment Banner */}

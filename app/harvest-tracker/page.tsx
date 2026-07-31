@@ -87,25 +87,24 @@ export default function HarvestLaborTrackerPage() {
       <LandSidebar />
 
       {/* Header */}
-      <header className="flex items-center justify-between border-b border-[#E3DCC6] pb-4 pr-28">
-        <div className="flex items-center gap-3">
-          <Link href="/yield-analytics" className="bg-white p-2.5 rounded-xl border border-[#E3DCC6] hover:border-[#B68D40]/40 transition shadow-sm">
+      <header className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#E3DCC6] pb-4 gap-4 pr-16 md:pr-28">        <div className="flex items-start gap-3">
+          <Link href="/yield-analytics" className="bg-white p-2.5 rounded-xl border border-[#E3DCC6] hover:border-[#B68D40]/40 transition shadow-sm shrink-0">
             <ArrowLeft className="w-5 h-5 text-[#54503F]" />
           </Link>
-          <div>
-            <h1 className="font-display text-xl font-semibold tracking-tight text-[#163C2C] flex items-center gap-2">
-              <ClipboardList className="w-6 h-6 text-[#2F6B4A]" />
-              Field Work Schedule & <span className="text-[#2F6B4A]">Soil Impact AI Tracker</span>
+          <div className="min-w-0">
+            <h1 className="font-display text-lg md:text-xl font-semibold tracking-tight text-[#163C2C] leading-snug flex items-center gap-2">
+              <ClipboardList className="w-5 h-5 md:w-6 md:h-6 text-[#2F6B4A] shrink-0" />
+              Field Work Schedule
             </h1>
-            <p className="text-xs text-[#8A836E]">
+            <p className="text-xs text-[#8A836E] mt-1">
               Estate: <strong className="text-[#163C2C]">{land?.land_name || 'My Estate'}</strong> — Track task completions & predicted soil recovery
             </p>
           </div>
         </div>
 
-        <span className="hidden md:flex bg-[#2F6B4A]/10 text-[#2F6B4A] px-3.5 py-1.5 rounded-full text-xs font-semibold border border-[#2F6B4A]/20 items-center gap-1.5">
-          <Sparkles className="w-4 h-4" /> AI Soil Recovery Engine Active
-        </span>
+        <span className="hidden md:flex bg-[#2F6B4A]/10 text-[#2F6B4A] px-3.5 py-1.5 rounded-full text-xs font-semibold border border-[#2F6B4A]/20 items-center gap-1.5 shrink-0">
+    <Sparkles className="w-4 h-4" /> AI Soil Recovery Engine Active
+  </span>
       </header>
 
       {/* Main Grid List */}

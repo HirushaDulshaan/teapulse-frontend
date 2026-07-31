@@ -251,21 +251,21 @@ export default function MyLandPage() {
         <LandSidebar />
 
         {/* Header */}
-        <header className="max-w-7xl mx-auto flex items-center justify-between border-b border-[#E3DCC6] pb-4 mb-6 pr-28">
-          <div className="flex items-center gap-3">
-            <Link href="/dashboard" className="bg-white p-2 rounded-xl border border-[#E3DCC6] hover:border-[#B68D40]/40 transition shadow-sm">
+        <header className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between border-b border-[#E3DCC6] pb-4 mb-6 gap-4 pr-16 md:pr-28">
+          <div className="flex items-start gap-3">
+            <Link href="/dashboard" className="bg-white p-2 rounded-xl border border-[#E3DCC6] hover:border-[#B68D40]/40 transition shadow-sm shrink-0">
               <ArrowLeft className="w-5 h-5 text-[#54503F]" />
             </Link>
-            <div className="flex items-center gap-2">
-              <Leaf className="w-6 h-6 text-[#2F6B4A]" />
-              <h1 className="font-display text-xl font-semibold tracking-tight text-[#163C2C]">
-                {profile.firstName || 'User'}'s Registered <span className="text-[#B68D40]">3D Estate</span>
+            <div className="min-w-0">
+              <h1 className="font-display text-lg md:text-xl font-semibold tracking-tight text-[#163C2C] leading-snug flex items-center gap-2">
+                <Leaf className="w-5 h-5 md:w-6 md:h-6 text-[#2F6B4A] shrink-0" />
+                {profile.firstName || 'User'}'s Estate
               </h1>
             </div>
           </div>
-          <span className="hidden md:flex bg-[#2F6B4A]/10 text-[#2F6B4A] px-3.5 py-1.5 rounded-full text-xs font-semibold border border-[#2F6B4A]/20 items-center gap-1.5">
-          <ShieldCheck className="w-4 h-4" /> Verified Land Owner ({totalMicroBlocks} Blocks)
-        </span>
+          <span className="hidden md:flex bg-[#2F6B4A]/10 text-[#2F6B4A] px-3.5 py-1.5 rounded-full text-xs font-semibold border border-[#2F6B4A]/20 items-center gap-1.5 shrink-0">
+    <ShieldCheck className="w-4 h-4" /> Verified Land Owner ({totalMicroBlocks} Blocks)
+  </span>
         </header>
 
         {/* Main Container */}
