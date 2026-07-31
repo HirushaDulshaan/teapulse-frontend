@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Leaf,
   CloudRain,
@@ -16,6 +16,8 @@ import {
   TestTube,
   Layers,
   Navigation,
+  ChevronDown,
+  X,
 } from 'lucide-react';
 import LandSidebar from '@/components/LandSidebar';
 
@@ -110,7 +112,7 @@ export default function MyLandPage() {
     status: 'Optimal',
   });
 
-  // 🗺️ Toggle to show Live GPS Navigator Map for the selected block
+  // 🗺️ Toggle to show Live GPS Navigator Map (now rendered as a modal popup) for the selected block
   const [activeNavigatorBlock, setActiveNavigatorBlock] = useState<number | null>(null);
 
   // 1. Initial Data Fetch
@@ -172,6 +174,18 @@ export default function MyLandPage() {
     }
   }, []);
 
+  // Lock background scroll while the navigator modal is open — otherwise on
+  // mobile the page behind the popup keeps scrolling, which feels broken.
+  useEffect(() => {
+    if (activeNavigatorBlock !== null) {
+      const original = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = original;
+      };
+    }
+  }, [activeNavigatorBlock]);
+
   const handleBlockNumberChange = (num: number) => {
     setSelectedBlockNumber(num);
     const block = blocksDataMap[num];
@@ -212,6 +226,16 @@ export default function MyLandPage() {
   ];
 
   const activeBlock = activeNavigatorBlock ? blocksDataMap[activeNavigatorBlock] : null;
+
+  // 🔽 All block numbers available for the "Jump to Block" dropdown, built
+  // once blocksDataMap is populated (falls back to totalMicroBlocks range
+  // so the dropdown still renders something sensible on first paint).
+  const allBlockNumbers =
+      Object.keys(blocksDataMap).length > 0
+          ? Object.keys(blocksDataMap)
+              .map((k) => parseInt(k, 10))
+              .sort((a, b) => a - b)
+          : Array.from({ length: totalMicroBlocks }, (_, i) => i + 1);
 
   return (
       <div className="min-h-screen bg-[#FBFAF6] text-[#1A1A17] font-sans p-4 md:p-6 overflow-x-hidden relative">
@@ -284,6 +308,30 @@ export default function MyLandPage() {
             />
           </motion.div>
 
+          {/* 🔽 Jump to Block — quick direct-select dropdown for large estates (100+ blocks) */}
+          <div className="bg-white p-4 rounded-2xl border border-[#E3DCC6] shadow-sm flex items-center gap-3 flex-wrap">
+            <span className="text-xs font-bold text-[#163C2C] flex items-center gap-1.5 whitespace-nowrap">
+              <Layers className="w-3.5 h-3.5 text-[#B68D40]" /> Jump to Block
+            </span>
+            <div className="relative flex-1 min-w-[160px]">
+              <select
+                  value={selectedBlockNumber}
+                  onChange={(e) => handleBlockNumberChange(parseInt(e.target.value, 10))}
+                  className="w-full appearance-none bg-[#FBFAF6] border border-[#E3DCC6] rounded-xl pl-3 pr-9 py-2.5 text-sm font-semibold text-[#163C2C] focus:outline-none focus:ring-2 focus:ring-[#B68D40]/40 focus:border-[#B68D40]/50 cursor-pointer"
+              >
+                {allBlockNumbers.map((num) => (
+                    <option key={num} value={num}>
+                      {blocksDataMap[num]?.name || `Block ${String(num).padStart(2, '0')}`}
+                    </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-[#8A836E] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+            <span className="text-[11px] text-[#8A836E] whitespace-nowrap">
+              {totalMicroBlocks} blocks total
+            </span>
+          </div>
+
           {/* Active Block Live Telemetry Cards with 🧭 Navigate Button */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {previewBlocks.map((bNum) => {
@@ -350,19 +398,49 @@ export default function MyLandPage() {
               );
             })}
           </div>
+        </main>
 
-          {/* 🗺️ Live GPS OpenStreetMap Integration for Selected Block */}
+        {/* 🗺️ Live GPS Navigator — now a centered popup/modal instead of an
+            inline block at the bottom of the page, so it's impossible to miss
+            on mobile (users were not scrolling far enough to notice it before). */}
+        <AnimatePresence>
           {activeBlock && (
-              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-                <EstateNavigatorMap
-                    targetBlockName={activeBlock.name}
-                    targetLat={activeBlock.lat}
-                    targetLng={activeBlock.lng}
-                />
+              <motion.div
+                  key="navigator-modal-backdrop"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="fixed inset-0 z-[999] bg-black/55 backdrop-blur-sm flex items-end sm:items-center justify-center"
+                  onClick={() => setActiveNavigatorBlock(null)}
+              >
+                <motion.div
+                    key="navigator-modal-card"
+                    initial={{ opacity: 0, y: 40 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 40 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                    className="w-full sm:max-w-lg sm:mx-4 max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl relative"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Close button */}
+                  <button
+                      onClick={() => setActiveNavigatorBlock(null)}
+                      aria-label="Close navigator"
+                      className="absolute top-3 right-3 z-10 bg-white hover:bg-[#F3EFE3] border border-[#E3DCC6] rounded-full p-2 shadow-md transition"
+                  >
+                    <X className="w-4 h-4 text-[#54503F]" />
+                  </button>
+
+                  <EstateNavigatorMap
+                      targetBlockName={activeBlock.name}
+                      targetLat={activeBlock.lat}
+                      targetLng={activeBlock.lng}
+                  />
+                </motion.div>
               </motion.div>
           )}
-
-        </main>
+        </AnimatePresence>
       </div>
   );
 }
