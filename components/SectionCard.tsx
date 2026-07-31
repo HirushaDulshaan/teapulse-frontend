@@ -1,44 +1,68 @@
-// components/SectionCard.tsx
 'use client';
 
-import Link from 'next/link';
-import { ArrowRight, type LucideIcon } from 'lucide-react';
+import Image from 'next/image';
+import { ArrowUpRight, LucideIcon } from 'lucide-react';
 
-type SectionCardProps = {
-  href: string;
-  title: string;
-  tagline: string;
-  gradient: string; // tailwind "from-x to-y" classes, one per card for variety
-  Icon: LucideIcon;
-  tall?: boolean;
-};
+interface SectionCardProps {
+    title: string;
+    tagline: string;
+    gradient: string;
+    Icon: LucideIcon;
+    image?: string;
+    tall?: boolean;
+}
 
-/**
- * Full-bleed, image-led link card — the same grammar pureceylontea.com
- * uses for "Story / Production / Diversity / Where to buy": a large
- * photographic block, a dark gradient for legibility, and a short
- * title + tagline pinned to the bottom.
- */
-export default function SectionCard({ href, title, tagline, gradient, Icon, tall }: SectionCardProps) {
-  return (
-    <Link
-      href={href}
-      className={`group relative block overflow-hidden rounded-2xl ${tall ? 'h-[420px]' : 'h-[280px]'}`}
-    >
-      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} transition-transform duration-700 ease-out group-hover:scale-110`} />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+export default function SectionCard({
+                                        title,
+                                        tagline,
+                                        gradient,
+                                        Icon,
+                                        image,
+                                        tall = false,
+                                    }: SectionCardProps) {
+    return (
+        <div
+            className={`group relative overflow-hidden rounded-2xl border border-white/10 flex flex-col justify-end p-6 transition-all duration-300 hover:border-white/20 ${
+                tall ? 'min-h-[340px]' : 'min-h-[220px]'
+            }`}
+        >
+            {/* Background image, if provided — kept bright, no color wash on top of it */}
+            {image && (
+                <Image
+                    src={image}
+                    alt=""
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover object-center opacity-95 group-hover:scale-105 transition-transform duration-500"
+                />
+            )}
 
-      <Icon className="absolute top-5 left-5 w-6 h-6 text-white/80" strokeWidth={1.5} />
+            {/* Color gradient wash — only used as the card background when there's no photo */}
+            {!image && (
+                <div className={`absolute inset-0 bg-gradient-to-t ${gradient}`} />
+            )}
 
-      <div className="absolute bottom-0 left-0 right-0 p-6">
-        <h3 className="font-display text-xl sm:text-2xl font-semibold text-white leading-snug">
-          {title}
-        </h3>
-        <p className="text-white/75 text-xs sm:text-sm mt-1.5 max-w-xs">{tagline}</p>
-        <span className="inline-flex items-center gap-1.5 text-[#F4EEDD] text-xs font-semibold mt-4 opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0">
-          Explore <ArrowRight className="w-3.5 h-3.5" />
-        </span>
-      </div>
-    </Link>
-  );
+            {/* Darken only the lower portion so the title/tagline stay readable,
+          while the top of the photo stays bright and clearly visible */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
+
+            {/* Icon */}
+            <div className="relative z-10 absolute top-6 left-6 bg-white/10 backdrop-blur-sm p-2.5 rounded-xl border border-white/10 text-[#E8E4D6] w-fit">
+                <Icon className="w-5 h-5" />
+            </div>
+
+            {/* Arrow, appears on hover */}
+            <div className="relative z-10 absolute top-6 right-6 opacity-0 group-hover:opacity-100 -translate-y-1 group-hover:translate-y-0 transition-all duration-300 bg-white/10 backdrop-blur-sm p-2 rounded-lg border border-white/10 text-[#00E68A]">
+                <ArrowUpRight className="w-4 h-4" />
+            </div>
+
+            {/* Text */}
+            <div className="relative z-10">
+                <h3 className="font-display text-lg font-semibold text-white">{title}</h3>
+                <p className="text-xs text-[#C9C6B8] mt-1.5 leading-relaxed max-w-[85%]">
+                    {tagline}
+                </p>
+            </div>
+        </div>
+    );
 }
